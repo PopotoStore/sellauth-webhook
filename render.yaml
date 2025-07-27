@@ -6,4 +6,4 @@ services:
     startCommand: python sellauth_webhook.py
     envVars:
       - key: API_KEY
-        value: "5153921|N14SxoP2OfEznW2RFXIL27ixZsUiif7S7pKKHjp2b0cfabdc"
+        value: "LA_TUA_API_KEY"
