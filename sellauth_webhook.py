@@ -35,21 +35,18 @@ def remove_serial(product_id, delivered_serial):
         update_product_serials(product_id, updated_serials)
         print(f"✅ Serial '{delivered_serial}' rimosso dal prodotto '{product_id}'")
     else:
-        print(f"⚠️ Serial '{delivered_serial}' non trovato nel prodotto '{product_id}'")
+        print("⚠️ Serial non trovato o già rimosso.")
 
 # 📬 Webhook endpoint
 @app.route("/webhook", methods=["POST"])
 def webhook():
     try:
+        # ✅ Mostra esattamente i dati ricevuti
+        print("📩 Headers:", dict(request.headers))
+        print("📩 Raw body:", request.data.decode("utf-8"))
+
         data = request.get_json(force=True)
-        print("📩 Webhook ricevuto:", data)
-
-        if not data:
-            print("❌ Nessun JSON ricevuto")
-            return jsonify({"status": "error", "message": "Nessun JSON nel body"}), 400
-
-        # 🔍 Log dettagliato
-        print("🔑 Chiavi ricevute:", list(data.keys()))
+        print("📩 JSON ricevuto:", data)
 
         product_id = data.get("product_id")
         delivered_serial = data.get("serial")
@@ -61,10 +58,10 @@ def webhook():
             remove_serial(product_id, delivered_serial)
             return jsonify({"status": "ok", "message": "Serial rimosso"}), 200
         else:
-            print("⚠️ Dati mancanti nel payload:", data)
+            print("⚠️ Dati mancanti nel payload JSON:", data)
             return jsonify({"status": "error", "message": "Dati mancanti"}), 400
     except Exception as e:
-        print("❌ Errore nel webhook:", str(e))
+        print("❌ Errore parsing JSON:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # 🌐 Ping di test
