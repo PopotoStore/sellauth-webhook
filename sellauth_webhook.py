@@ -2,11 +2,6 @@ from flask import Flask, request, jsonify
 import requests
 import os
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
-
-
 # --- CONFIGURAZIONE ---
 API_KEY = os.environ.get("API_KEY")  # ✅ Variabile ambiente sicura
 BASE_URL = "https://api.sellauth.com/v1"
@@ -46,7 +41,6 @@ def remove_serial(product_id, delivered_serial):
 @app.route("/webhook", methods=["POST"])
 def webhook():
     try:
-        # ✅ Mostra esattamente i dati ricevuti
         print("📩 Headers:", dict(request.headers))
         print("📩 Raw body:", request.data.decode("utf-8"))
 
@@ -74,6 +68,7 @@ def webhook():
 def index():
     return "✅ Server attivo. Webhook pronto su /webhook"
 
-# 🚀 Main per ambiente Render
+# 🚀 Avvia server Flask (Render usa variabile PORT)
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
