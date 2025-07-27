@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: sellauth-webhook
+    env: python
+    buildCommand: ""
+    startCommand: python sellauth_webhook.py
+    envVars:
+      - key: API_KEY
+        value: "LA_TUA_API_KEY"
