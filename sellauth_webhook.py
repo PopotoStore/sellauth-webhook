@@ -1,8 +1,12 @@
 from flask import Flask, request, jsonify
 import requests
 
+from flask import Flask, request, jsonify
+import requests
+import os  # 🔐 Per leggere l'API_KEY in modo sicuro
+
 # --- CONFIGURAZIONE ---
-API_KEY = "LA_TUA_API_KEY"   # 🔑 Inserisci qui la tua API key SellAuth
+API_KEY = os.environ.get("API_KEY")  # ✅ Lettura da variabile ambiente
 BASE_URL = "https://api.sellauth.com/v1"
 
 headers = {
@@ -14,7 +18,8 @@ app = Flask(__name__)
 
 def get_product(product_id):
     url = f"{BASE_URL}/products/{product_id}"
-    return requests.get(url, headers=headers).json()
+    response = requests.get(url, headers=headers)
+    return response.json()
 
 def update_product_serials(product_id, new_serials):
     url = f"{BASE_URL}/products/{product_id}"
@@ -30,7 +35,7 @@ def remove_serial(product_id, delivered_serial):
         update_product_serials(product_id, updated_serials)
         print(f"✅ Serial {delivered_serial} rimosso dal prodotto {product_id}")
     else:
-        print("⚠️ Serial non trovato (forse già rimosso).")
+        print("⚠️ Serial non trovato o già rimosso.")
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -45,6 +50,7 @@ def webhook():
         return jsonify({"status": "ok", "message": "Serial rimosso"}), 200
     else:
         return jsonify({"status": "error", "message": "Dati mancanti"}), 400
+
 @app.route("/", methods=["GET"])
 def index():
     return "✅ Server attivo. Webhook pronto su /webhook"
