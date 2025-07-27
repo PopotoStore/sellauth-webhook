@@ -29,22 +29,24 @@ def update_product_serials(product_id, new_serials):
 def remove_serial(product_id, delivered_serial):
     product = get_product(product_id)
     current_serials = product.get("serials", [])
+
+    print(f"📦 Seriali attuali per il prodotto {product_id}: {current_serials}")
     updated_serials = [s for s in current_serials if s != delivered_serial]
 
     if len(updated_serials) < len(current_serials):
         update_product_serials(product_id, updated_serials)
-        print(f"✅ Serial '{delivered_serial}' rimosso dal prodotto '{product_id}'")
+        print(f"✅ Serial **'{delivered_serial}'** rimosso da prodotto **'{product_id}'**")
+        print(f"🔢 Seriali rimanenti: {updated_serials}")
     else:
-        print("⚠️ Serial non trovato o già rimosso.")
+        print(f"⚠️ Serial '{delivered_serial}' NON trovato in {product_id} o già rimosso.")
 
 # 📬 Webhook endpoint
 @app.route("/webhook", methods=["POST"])
 def webhook():
     try:
         data = request.get_json(force=True)
-        print("📩 Webhook ricevuto:", data)  # ✅ Mostra tutto il payload ricevuto
+        print("📩 Webhook ricevuto:", data)
 
-        # 👇 Log dettagliato per capire se arrivano i dati
         product_id = data.get("product_id")
         delivered_serial = data.get("serial")
 
@@ -61,11 +63,11 @@ def webhook():
         print("❌ Errore nel webhook:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# 🌐 Ping di test
+# 🌐 Test ping
 @app.route("/", methods=["GET"])
 def index():
     return "✅ Server attivo. Webhook pronto su /webhook"
 
-# 🚀 Main per ambiente Render
+# 🚀 Entry point per Render
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
