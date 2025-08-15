@@ -3,6 +3,7 @@ import requests
 import os
 import json
 
+# Configurazione
 API_KEY = os.environ.get("API_KEY")
 BASE_URL = "https://api.sellauth.com/v1"
 
@@ -16,6 +17,7 @@ headers = {
 
 app = Flask(__name__)
 
+# Recupera il prodotto da SellAuth
 def get_product(product_id):
     url = f"{BASE_URL}/products/{product_id}"
     response = requests.get(url, headers=headers)
@@ -24,6 +26,7 @@ def get_product(product_id):
         return {}
     return response.json()
 
+# Aggiorna la lista dei seriali nel prodotto
 def update_product_serials(product_id, new_serials):
     url = f"{BASE_URL}/products/{product_id}"
     payload = {"serials": new_serials}
@@ -32,6 +35,7 @@ def update_product_serials(product_id, new_serials):
         print(f"❌ Errore aggiornamento serials: {response.status_code} - {response.text}")
     return response.json()
 
+# Rimuove il seriale dal prodotto
 def remove_serial(product_id, delivered_serial):
     product = get_product(product_id)
     current_serials = product.get("serials", [])
@@ -45,28 +49,32 @@ def remove_serial(product_id, delivered_serial):
         print("⚠️ Serial non trovato o già rimosso.")
         return False
 
+# Webhook handler
 @app.route("/webhook", methods=["POST"])
 def webhook():
     try:
+        # Log degli header e body grezzo
         headers_received = dict(request.headers)
         raw_body = request.data.decode("utf-8", errors="ignore")
 
-        print("📩 Headers:", headers_received)
-        print("📩 Raw body:", raw_body)
+        print("📩 Headers ricevuti:", headers_received)
+        print("📩 Body grezzo ricevuto:", raw_body)
 
-        if not request.is_json:
+        # Parsing JSON forzato anche se Content-Type non è corretto
+        try:
+            data = request.get_json(force=True)
+            print("📩 JSON parsato (formattato):")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        except Exception as e:
+            print("❌ Errore parsing JSON:", str(e))
             return jsonify({
                 "status": "error",
-                "message": "Contenuto non JSON",
+                "message": "Body non è JSON valido",
                 "headers": headers_received,
                 "raw_body": raw_body
             }), 400
 
-        data = request.get_json()
-        print("📩 JSON ricevuto (formattato):")
-        print(json.dumps(data, indent=2, ensure_ascii=False))
-
-        # Prova estrazione diretta
+        # Estrai product_id e serial
         product_id = data.get("product_id")
         delivered_serial = data.get("serial")
 
@@ -101,6 +109,7 @@ def webhook():
         print("❌ Errore nel webhook:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Pagina base
 @app.route("/", methods=["GET"])
 def index():
     return "✅ Server attivo. Webhook pronto su /webhook"
@@ -108,5 +117,7 @@ def index():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
+
 
 
